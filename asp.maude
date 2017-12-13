@@ -1,0 +1,91 @@
+fmod ASP-SIG is
+     sort ASPAtom ASPPred ASPLiteral ASPNegLiteral ASPDefaultNegation ASPExtLiteral .
+
+     subsort ASPAtom ASPPred < ASPLiteral .
+     subsort ASPNegLiteral < ASPLiteral .
+
+     op neg_ : ASPLiteral -> ASPNegLiteral [prec 10] .
+     op not_ : ASPLiteral -> ASPDefaultNegation [prec 10] .
+endfm
+
+view ASPLiteral from TRIV to ASP-SIG is
+     sort Elt to ASPLiteral .
+endv
+
+view ASPDefaultNegation from TRIV to ASP-SIG is
+     sort Elt to ASPDefaultNegation .
+endv
+
+fmod ASP-RULE is
+     pr SET{ASPLiteral} * (op empty to esl) .
+     pr SET{ASPDefaultNegation} * (op empty to esn) .     
+
+     sort ASPRule .
+
+     op _<-__ : ASPLiteral Set{ASPLiteral}
+     		Set{ASPDefaultNegation} -> ASPRule [prec 122 format(o g o o o)] .
+
+     op OR_<-__ : Set{ASPLiteral} Set{ASPLiteral}
+     		Set{ASPDefaultNegation} -> ASPRule [prec 122 format(g o g o o o)] .
+endfm
+
+view ASPRule from TRIV to ASP-RULE is
+     sort Elt to ASPRule .
+endv
+
+fmod ASP-RULES is
+     pr SET{ASPRule} * (op empty to esr) .
+endfm
+
+fmod ASP-SAT is
+    inc ASP-RULES .
+
+    op _|=_ : NeSet{ASPLiteral} ASPRule -> Bool [prec 123 format (o b! o o)] .
+    op _|=_ : NeSet{ASPLiteral} Set{ASPRule} -> Bool [ditto] .
+    op _|=_ : NeSet{ASPLiteral} ASPLiteral -> Bool [prec 50] .
+    op _|=_ : NeSet{ASPLiteral} ASPDefaultNegation -> Bool [prec 50] .    
+
+    vars S L : NeSet{ASPLiteral} .
+    vars E R : Set{ASPLiteral} . var D : Set{ASPDefaultNegation} .
+    var T : ASPLiteral . var RL : ASPRule . var RLS : Set{ASPRule} .
+
+    eq esl |= RL = true 
+    eq S |= (T <- R D) = (S |= R and S |= D) implies S |= T .
+    eq S |= (OR L <- R D) = (S |= R and S |= D) implies S |= L .
+    eq S |= RL, RLS = (S |= RL) and (S |= RLS) .
+    eq S |= not T = not (T in S) .
+    eq S |= T = (T in S) .
+    eq S |= (T, E) = (T in S) or-else S |= E .
+endfm
+
+--- Pg. 26
+fmod TEST is
+     inc ASP-SAT .
+
+     ops a b c : -> ASPAtom .
+     ops p q t : ASPAtom -> ASPPred .
+
+     op r : -> ASPRule .
+     eq r = OR (p(a),p(b)) <- (q(b), neg t(c)) not(t(c)) .
+endfm
+
+set print format on .
+
+red neg p(a), q(b), neg t(c) |= r .
+
+fmod HAMILTONIAN-CYCLE is
+     sorts Initial Vertex Edge Path .
+     subsort Initial < Vertex .
+     subsort Edge Vertex < ASPAtom .
+
+     op edge : Vertex Vertex -> Edge .
+     op init : Vertex -> Initial .
+     op in : Vertex Vertex -> Pred .
+
+     op hc : -> Set{ASPRule} .
+
+     vars V V1 V2 : Vertex .
+
+     *** TODO
+     *** eq hc = neg in(V, V2) <- in(V, V1) if V1 =/= V2 .
+endfm

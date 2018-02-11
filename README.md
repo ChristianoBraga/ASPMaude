@@ -1,2 +1,2 @@
 # ASPMaude
-A http://www.cs.uiuc.edu | Maude implementation of Answer Set Programming
+A [Maude](http://www.cs.uiuc.edu) implementation of Answer Set Programming
